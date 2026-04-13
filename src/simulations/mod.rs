@@ -33,3 +33,4 @@ pub mod rds_cluster;
 pub mod wireguard_vpn;
 pub mod ecr_registry;
 pub mod config_recorder;
+pub mod composed;
