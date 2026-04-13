@@ -51,7 +51,7 @@ let analysis = ArchitectureAnalysis::from_terraform_json(&tf_json);
 assert!(analysis.has_resource("aws_vpc", 1));
 ```
 
-## What's Proven (262+ tests)
+## What's Proven (285+ tests)
 
 | Category | Tests | What |
 |----------|-------|------|
@@ -68,7 +68,7 @@ assert!(analysis.has_resource("aws_vpc", 1));
 | Composed systems | 9 | Multi-architecture composition |
 | Compiler-is-verifier | 27 | Full pipeline type-to-proof |
 | Sandbox proofs | 9 | Execution backend correctness |
-| Compliance proofs | 15 | NIST/CIS/FedRAMP/PCI/SOC2 control mapping |
+| Compliance proofs | 26 | NIST/CIS/FedRAMP/PCI/SOC2 control mapping, proptest verification, non-compliance detection, certification chain |
 
 ## Certification Module (feature: `certification`)
 
