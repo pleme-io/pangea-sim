@@ -6,6 +6,8 @@
 //! Combined with proptest, this proves invariants across random configurations:
 //! "Checked 10,000 configs. 0 violations. Property proven."
 
+pub mod k8s;
+
 use serde_json::Value;
 
 /// A violation of a security invariant.
