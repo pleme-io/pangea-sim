@@ -1,0 +1,8 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc cf7f3a9b1895ba6f290787b1bbb03ef35184b0fa601ab1791df3ecedd621b072 # shrinks to config = HelmChartConfig { chart_name: "a-0", namespace: "default", replicas: 1, image: "ghcr.io/pleme-io/app", image_tag: "latest", service_port: 8080, enable_network_policy: false, enable_pdb: false, enable_hpa: false, enable_service_monitor: false, resources_cpu_limit: "500m", resources_memory_limit: "256Mi", security_context_run_as_non_root: true, security_context_read_only_root: true, security_context_drop_capabilities: true, labels: [("ManagedBy", "pangea"), ("Purpose", "convergence")] }
+cc 5ccc05bccbd747d79fa30fdf13da6bc8a89c958d962fba17826bbbd8743a92e6 # shrinks to vpc_cfg = SecureVpcConfig { name: "a0a", cidr: "10.0.0.0/16", azs: ["us-east-1a"], profile: Dev, flow_logs: false }, helm_cfg = HelmChartConfig { chart_name: "a0a", namespace: "default", replicas: 1, image: "ghcr.io/pleme-io/app", image_tag: "latest", service_port: 8080, enable_network_policy: false, enable_pdb: false, enable_hpa: false, enable_service_monitor: false, resources_cpu_limit: "500m", resources_memory_limit: "256Mi", security_context_run_as_non_root: true, security_context_read_only_root: true, security_context_drop_capabilities: true, labels: [("ManagedBy", "pangea"), ("Purpose", "convergence")] }

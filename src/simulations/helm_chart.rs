@@ -87,7 +87,11 @@ pub fn simulate(config: &HelmChartConfig) -> Value {
             },
             "template": {
                 "metadata": {
-                    "labels": { "app": config.chart_name }
+                    "labels": {
+                        "app": config.chart_name,
+                        "app.kubernetes.io/name": config.chart_name,
+                        "app.kubernetes.io/managed-by": "pangea"
+                    }
                 },
                 "spec": {
                     "securityContext": {
