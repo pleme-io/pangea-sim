@@ -25,3 +25,4 @@ pub mod simulations;
 pub mod transitions;
 pub mod certification;
 pub mod compliance;
+pub mod remediation;
