@@ -20,3 +20,4 @@ pub mod engine;
 pub mod error;
 pub mod invariants;
 pub mod analysis;
+pub mod simulations;
