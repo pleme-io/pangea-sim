@@ -381,6 +381,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "compliance-controls"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "const-hex"
 version = "1.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1624,6 +1632,7 @@ name = "pangea-sim"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "compliance-controls",
  "iac-forge",
  "proptest",
  "ruby-synthesizer",

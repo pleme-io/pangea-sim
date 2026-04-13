@@ -51,16 +51,24 @@ let analysis = ArchitectureAnalysis::from_terraform_json(&tf_json);
 assert!(analysis.has_resource("aws_vpc", 1));
 ```
 
-## What's Proven (70 tests)
+## What's Proven (262+ tests)
 
 | Category | Tests | What |
 |----------|-------|------|
-| Invariant proofs | 16 | proptest × 10 invariants × 10,000 configs |
+| Invariant proofs | 16 | proptest x 10 invariants x 10,000 configs |
 | Invariant unit | 27 | Per-invariant pass/fail + composition |
 | Analysis proofs | 8 | Resource counting, cross-refs, determinism |
 | Engine tests | 5 | JSON execution, error handling, determinism |
 | Determinism | 5 | JSON round-trip, value reflexivity |
 | Analysis | 9 | Structure, sorting, independence |
+| Architecture invariants | 20 | All 20 simulations satisfy all 10 invariants |
+| Architecture variants | 40 | Resource production + determinism per simulation |
+| Builder fleet proofs | 36 | Exhaustive fleet config coverage |
+| Builder fleet sims | 20 | Simulation structure + analysis |
+| Composed systems | 9 | Multi-architecture composition |
+| Compiler-is-verifier | 27 | Full pipeline type-to-proof |
+| Sandbox proofs | 9 | Execution backend correctness |
+| Compliance proofs | 15 | NIST/CIS/FedRAMP/PCI/SOC2 control mapping |
 
 ## Certification Module (feature: `certification`)
 
@@ -99,6 +107,41 @@ certify_invariant(name, tf_json, passed, count)
 
 Tampering with ANY proof or the certificate hash breaks verification.
 
+## Compliance Module (feature: `compliance`)
+
+Links invariant proofs to NIST 800-53, CIS AWS, FedRAMP, PCI DSS, and SOC 2 controls.
+Requires `compliance-controls` crate (path dependency).
+
+### Key Functions
+
+```rust
+use pangea_sim::compliance::{verify_baseline, coverage_report, ComplianceResult};
+use compliance_controls::{fedramp_moderate, cis_aws_v3};
+
+// Verify Terraform JSON against FedRAMP Moderate baseline
+let result: ComplianceResult = verify_baseline(&tf_json, &fedramp_moderate());
+assert!(result.all_satisfied);
+
+// Check how well our invariants cover a baseline
+let coverage = coverage_report(&cis_aws_v3());
+assert!(coverage.percentage() > 80.0);
+```
+
+### Control Mapping (10 invariants -> 30+ controls across 5 frameworks)
+
+| Invariant | NIST | CIS | SOC2 | PCI |
+|-----------|------|-----|------|-----|
+| NoPublicSsh | AC-17, SC-7(4) | 5.2 | CC6.1 | 1.2.1 |
+| AllEbsEncrypted | SC-28(1), SC-13 | 2.2.1 | CC6.1 | 3.4.1 |
+| ImdsV2Required | SC-3 | EC2.21 | -- | -- |
+| NoPublicS3 | AC-3, AC-14 | 2.1.1 | CC6.1 | -- |
+| IamLeastPrivilege | AC-6, AC-6(1) | -- | CC6.1 | -- |
+| NoDefaultVpcUsage | SC-7 | 5.1 | -- | -- |
+| AllSubnetsPrivate | SC-7(5), AC-4 | -- | -- | 1.2.5 |
+| EncryptionAtRest | SC-28, SC-12 | -- | -- | 3.4.1 |
+| LoggingEnabled | AU-2, AU-12, SI-4 | -- | CC7.1, CC7.2 | -- |
+| TaggingComplete | CM-8, CM-2 | -- | -- | -- |
+
 ## Sandbox Module
 
 Pluggable execution backends via the `ExecutionBackend` trait.
@@ -131,6 +174,7 @@ IacType (iac-forge IR)
           -> SimulationEngine.execute() [deterministic]
             -> Terraform JSON [serde_json::Value]
               -> 10 invariants [proven over 10,000+ random configs]
+                -> verify_baseline() [NIST/CIS/FedRAMP/PCI/SOC2 compliance]
                 -> certify_invariant() [BLAKE3 input + proof hash]
                   -> certify_simulation() [BLAKE3 certificate hash]
                     -> verify_certificate() [tamper-evident]
@@ -143,6 +187,7 @@ IacType (iac-forge IR)
 |-------|-------------|
 | `ruby-synthesizer` | Upstream: provides IacType-to-RubyType bridge, RubyNode AST |
 | `iac-forge` | Upstream: provides `IacType`, `IacAttribute`, `IacResource` IR types |
+| `compliance-controls` | Upstream: provides `Control`, `Baseline`, control mappings via `compliance` feature |
 | `tameshi` | Downstream: attestation layers consume `ProofResult` via `certification` feature |
 | `workspace-state-graph` | Downstream: maps cross-repo type and proof connectivity |
 

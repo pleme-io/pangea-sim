@@ -11,6 +11,7 @@ repository = "https://github.com/pleme-io/pangea-sim"
 default = []
 wasm-sandbox = ["dep:wasmtime", "dep:wasmtime-wasi"]
 certification = ["dep:tameshi", "dep:blake3"]
+compliance = ["dep:compliance-controls"]
 
 [dependencies]
 ruby-synthesizer = { path = "../ruby-synthesizer", features = ["iac-bridge"] }
@@ -23,6 +24,7 @@ wasmtime = { version = "29", optional = true }
 wasmtime-wasi = { version = "29", optional = true }
 tameshi = { path = "../tameshi", optional = true }
 blake3 = { version = "1", optional = true }
+compliance-controls = { path = "../compliance-controls", optional = true }
 
 [dev-dependencies]
 proptest = "1"
