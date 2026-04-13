@@ -22,5 +22,6 @@ pub mod invariants;
 pub mod analysis;
 pub mod sandbox;
 pub mod simulations;
+pub mod transitions;
 pub mod certification;
 pub mod compliance;
