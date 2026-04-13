@@ -1,27 +1,38 @@
 //! Simulation engine — execute synthesized Ruby, capture Terraform JSON.
 //!
 //! The engine takes Ruby source code (produced by ruby-synthesizer),
-//! executes it in a subprocess, and captures the Terraform JSON output.
+//! executes it via an [`ExecutionBackend`](crate::sandbox::ExecutionBackend),
+//! and captures the Terraform JSON output.
 //!
 //! The Ruby execution is isolated:
 //! - No cloud APIs called (synthesis only, no apply)
 //! - Output is deterministic (same input → same JSON)
-//! - Subprocess has no network access (can be sandboxed further with Nix/WASM)
+//! - Subprocess has no network access (can be sandboxed further with WASM)
+//!
+//! # Backends
+//!
+//! By default the engine uses [`SubprocessBackend`](crate::sandbox::SubprocessBackend).
+//! Use [`with_backend`](SimulationEngine::with_backend) to swap in a
+//! [`WasmBackend`](crate::sandbox::WasmBackend) or any custom implementation.
 
 use std::process::Command;
 use crate::error::SimError;
+use crate::sandbox::ExecutionBackend;
 
 /// Result of a simulation — the Terraform JSON output.
 pub type TerraformJson = serde_json::Value;
 
 /// Simulation engine that executes synthesized Ruby and captures Terraform JSON.
 ///
-/// Currently uses a Ruby subprocess. Future: artichoke (in-process) or WASM sandbox.
+/// Uses an [`ExecutionBackend`] to run Ruby code. Defaults to
+/// [`SubprocessBackend`] for backward compatibility.
 pub struct SimulationEngine {
-    /// Path to the Ruby binary.
+    /// Path to the Ruby binary (used by the default subprocess path).
     ruby_bin: String,
     /// Additional load paths (-I flags) for the Ruby process.
     load_paths: Vec<String>,
+    /// Optional pluggable execution backend.
+    backend: Option<Box<dyn ExecutionBackend>>,
 }
 
 impl SimulationEngine {
@@ -35,6 +46,7 @@ impl SimulationEngine {
         Self {
             ruby_bin: "ruby".to_string(),
             load_paths: Vec::new(),
+            backend: None,
         }
     }
 
@@ -52,7 +64,32 @@ impl SimulationEngine {
         self
     }
 
+    /// Set a custom execution backend.
+    ///
+    /// When a backend is set, [`execute`](Self::execute) delegates to
+    /// it instead of spawning a Ruby subprocess directly. This enables
+    /// WASM sandboxed execution or any other backend that implements
+    /// [`ExecutionBackend`].
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// use pangea_sim::engine::SimulationEngine;
+    /// use pangea_sim::sandbox::SubprocessBackend;
+    ///
+    /// let engine = SimulationEngine::new()
+    ///     .with_backend(Box::new(SubprocessBackend::new()));
+    /// ```
+    #[must_use]
+    pub fn with_backend(mut self, backend: Box<dyn ExecutionBackend>) -> Self {
+        self.backend = Some(backend);
+        self
+    }
+
     /// Execute Ruby source code and capture the output as JSON.
+    ///
+    /// If a backend is set via [`with_backend`](Self::with_backend), delegates
+    /// to it. Otherwise falls back to the built-in subprocess execution.
     ///
     /// The Ruby script MUST print valid JSON to stdout. The last expression
     /// should be the Terraform synthesis result converted to JSON.
@@ -62,6 +99,18 @@ impl SimulationEngine {
     /// Returns `SimError::RubyExecution` if the Ruby process exits non-zero.
     /// Returns `SimError::InvalidJson` if stdout is not valid JSON.
     pub fn execute(&self, ruby_source: &str) -> Result<TerraformJson, SimError> {
+        if let Some(ref backend) = self.backend {
+            let stdout = backend.execute(ruby_source).map_err(|e| {
+                SimError::RubyExecution {
+                    exit_code: -1,
+                    stderr: e.to_string(),
+                }
+            })?;
+            let json: TerraformJson = serde_json::from_str(stdout.trim())?;
+            return Ok(json);
+        }
+
+        // Default subprocess path (preserves original behavior exactly).
         let mut cmd = Command::new(&self.ruby_bin);
 
         for path in &self.load_paths {
@@ -82,6 +131,18 @@ impl SimulationEngine {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let json: TerraformJson = serde_json::from_str(stdout.trim())?;
         Ok(json)
+    }
+
+    /// Returns the name of the active execution backend.
+    ///
+    /// Returns `"subprocess (builtin)"` when using the default path,
+    /// or the backend's [`name()`](ExecutionBackend::name) when a
+    /// custom backend is set.
+    #[must_use]
+    pub fn backend_name(&self) -> &str {
+        self.backend
+            .as_ref()
+            .map_or("subprocess (builtin)", |b| b.name())
     }
 
     /// Synthesize a resource and capture Terraform JSON.
