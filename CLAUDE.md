@@ -142,6 +142,61 @@ assert!(coverage.percentage() > 80.0);
 | LoggingEnabled | AU-2, AU-12, SI-4 | -- | CC7.1, CC7.2 | -- |
 | TaggingComplete | CM-8, CM-2 | -- | -- | -- |
 
+## Compliance Module (feature: `compliance`)
+
+Bridges invariant proofs to formal compliance frameworks. Requires `compliance-controls` crate.
+
+### Key Functions
+
+- `verify_baseline(tf_json, baseline) -> ComplianceResult` -- verify Terraform JSON against a compliance baseline
+- `coverage_report(baseline) -> BaselineCoverage` -- check how well invariants cover a baseline
+
+### Data Types
+
+```rust
+ComplianceResult {
+    baseline_name: String,     // e.g., "FedRAMP Moderate"
+    total_controls: usize,
+    satisfied_count: usize,
+    violated_count: usize,
+    results: Vec<ControlResult>,
+    all_satisfied: bool,       // gate: false = non-compliant
+}
+
+ControlResult {
+    control_id: String,        // e.g., "AC-17", "CIS 5.2"
+    invariant: String,         // e.g., "NoPublicSsh"
+    satisfied: bool,
+    message: Option<String>,
+}
+```
+
+### Invariant-to-Control Mapping
+
+| Invariant | NIST | CIS AWS | SOC 2 | PCI DSS |
+|-----------|------|---------|-------|---------|
+| NoPublicSsh | AC-17, SC-7(4) | 5.2 | CC6.1 | 1.2.1 |
+| AllEbsEncrypted | SC-28(1), SC-13 | 2.2.1 | CC6.1 | 3.4.1 |
+| ImdsV2Required | SC-3 | EC2.21 | -- | -- |
+| NoPublicS3 | AC-3, AC-14 | 2.1.1 | CC6.1 | -- |
+| IamLeastPrivilege | AC-6, AC-6(1) | -- | CC6.1 | -- |
+| NoDefaultVpcUsage | SC-7 | 5.1 | -- | -- |
+| AllSubnetsPrivate | SC-7(5), AC-4 | -- | -- | 1.2.5 |
+| EncryptionAtRest | SC-28, SC-12 | -- | -- | 3.4.1 |
+| LoggingEnabled | AU-2, AU-12, SI-4 | -- | CC7.1, CC7.2 | -- |
+| TaggingComplete | CM-8, CM-2 | -- | -- | -- |
+
+### Available Baselines
+
+| Function | Controls | Coverage |
+|----------|----------|----------|
+| `fedramp_moderate()` | 23 NIST controls | >50% covered by invariants |
+| `cis_aws_v3()` | 6 CIS sections | Mostly covered |
+| `soc2_type_ii()` | 4 SOC 2 criteria | Mostly covered |
+| `pci_dss_v4()` | 5 PCI requirements | Mostly covered |
+
+See `docs/compliance-verification.md` for full usage guide.
+
 ## Sandbox Module
 
 Pluggable execution backends via the `ExecutionBackend` trait.
