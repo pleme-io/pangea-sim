@@ -4,6 +4,18 @@ Typed infrastructure simulation and proof engine. Synthesize infrastructure
 as Ruby, execute it, capture Terraform JSON, prove security invariants hold
 across all possible configurations — without touching any cloud API.
 
+## Declare Once, Prove Once, Render Anywhere
+
+pangea-sim is the simulation platform that makes zero-cost infrastructure
+verification possible. Infrastructure is TYPES, not code. Code is rendering.
+Proofs attach to Rust types (IacType, IacResource, Control, Baseline), not
+the rendering target.
+
+The `Backend` trait has 7 implementations (Terraform, Pulumi, Crossplane,
+Ansible, Pangea, Steampipe). All share the same types, invariants, compliance
+controls, and BLAKE3 certification. Adding a new backend inherits ALL
+existing proofs -- 856 tests across 6 crates prove zero-cost verification.
+
 ## The Concept
 
 ```

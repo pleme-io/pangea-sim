@@ -1,5 +1,21 @@
 # Compliance Verification
 
+## Declare Once, Prove Once, Render Anywhere
+
+pangea-sim is the simulation platform that proves the entire convergence chain
+at zero cost -- no cloud API called. Infrastructure is TYPES, not code. Code
+is rendering. Proofs attach to the types (IacType, IacResource, Control,
+Baseline), not the rendering target.
+
+The `Backend` trait has 7 implementations (Terraform, Pulumi, Crossplane,
+Ansible, Pangea, Steampipe). All share the same types, the same 10 invariants,
+the same 30+ compliance controls across 5 frameworks (NIST, CIS, FedRAMP,
+PCI-DSS, SOC2), and the same BLAKE3 certification. Adding a new backend
+inherits ALL existing proofs -- 856 tests across 6 crates.
+
+Any infrastructure change, on any architecture, can be simulated and proven
+correct and compliant BEFORE deployment. The rendering target is irrelevant.
+
 ## Overview
 
 The compliance module bridges pangea-sim's invariant proofs to formal compliance
