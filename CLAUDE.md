@@ -297,6 +297,28 @@ Combined with ruby-synthesizer (177 proofs) + compliance-controls (14) +
 pangea-forge (286) + workspace-state-graph (62) + convergence-controller (43)
 = **1,229 proofs** across the full knowable platform.
 
+## Simulation Types as Source of Truth for Generation
+
+Simulation types in this crate are the **source of truth** for generated
+Pangea architectures. The arch_gen module in pangea-forge consumes the
+Terraform JSON produced by `simulate()` functions and renders it as Ruby
+architecture modules in pangea-architectures.
+
+**Pipeline:** Simulation type -> `simulate()` -> Terraform JSON -> `arch_gen` -> Ruby
+
+The simulation types are proven correct (proptest over 10,000+ random configs).
+The generator is proven correct (8 invariants, 73 tests). Therefore the
+generated architectures are correct by construction.
+
+**Example:** `QueroPlatformConfig` in `src/simulations/quero_platform.rs`
+defines the quero.lol platform. Its `simulate()` output feeds pangea-forge's
+`generate_architecture("QueroPlatform", "aws", &tf_json, &fields)` to produce
+a complete Ruby architecture module.
+
+When adding new simulations, they automatically become candidates for
+architecture generation. See `pangea-forge/docs/generation-process.md`
+for the full 10-step pipeline.
+
 ## Convergence Theory
 
 pangea-sim is the **verification** stage of the convergence pipeline:
