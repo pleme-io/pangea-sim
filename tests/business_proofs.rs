@@ -13,9 +13,7 @@
 use pangea_sim::business::*;
 use pangea_sim::analysis::ArchitectureAnalysis;
 use pangea_sim::invariants::{all_invariants, check_all, Invariant};
-use pangea_sim::invariants::k8s::{
-    all_k8s_invariants, check_all_k8s,
-};
+use pangea_sim::invariants::k8s::all_k8s_invariants;
 use proptest::prelude::*;
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -339,7 +337,7 @@ fn business_to_k8s_passes_invariants() {
     let k8s_invs = all_k8s_invariants();
     for item in items {
         let k8s_refs: Vec<&dyn Invariant> = k8s_invs.iter().map(AsRef::as_ref).collect();
-        check_all_k8s(&k8s_refs, item)
+        check_all(&k8s_refs, item)
             .expect("All K8s invariants should hold for business env service");
     }
 }
@@ -367,7 +365,7 @@ fn same_env_renders_to_both_targets_correctly() {
         .expect("Should have items");
     for item in items {
         let k8s_refs: Vec<&dyn Invariant> = k8s_invs.iter().map(AsRef::as_ref).collect();
-        check_all_k8s(&k8s_refs, item).expect("K8s invariants hold");
+        check_all(&k8s_refs, item).expect("K8s invariants hold");
     }
 
     // Both passed from the SAME declaration -- render anywhere is proven
@@ -418,7 +416,7 @@ fn three_customer_tiers_all_proven() {
             .expect("items");
         for item in items {
             let k8s_refs: Vec<&dyn Invariant> = k8s_invs.iter().map(AsRef::as_ref).collect();
-            check_all_k8s(&k8s_refs, item).unwrap_or_else(|_| {
+            check_all(&k8s_refs, item).unwrap_or_else(|_| {
                 panic!(
                     "K8s invariants failed for '{}' ({:?})",
                     customer.name, customer.tier
@@ -826,7 +824,7 @@ fn multi_tenant_different_baselines_all_proven() {
             .expect("items");
         for item in items {
             let k8s_refs: Vec<&dyn Invariant> = k8s_invs.iter().map(AsRef::as_ref).collect();
-            check_all_k8s(&k8s_refs, item).unwrap_or_else(|v| {
+            check_all(&k8s_refs, item).unwrap_or_else(|v| {
                 panic!("Tenant '{}' K8s invariants failed: {:?}", tenant.name, v);
             });
         }
