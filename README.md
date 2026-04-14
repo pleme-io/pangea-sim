@@ -262,6 +262,56 @@ tameshi (attestation layers, BLAKE3 Merkle trees)
 workspace-state-graph (cross-repo type and proof connectivity)
 ```
 
+## The Knowable Platform
+
+pangea-sim is the proof engine at the heart of the **knowable platform** --
+a computing environment where every capability is proven by construction.
+You do not hope infrastructure works; you KNOW it works because the proof
+exists.
+
+A domain becomes knowable when:
+1. Every valid state has a Rust type (invalid states are unrepresentable)
+2. Invariants define correctness as pure functions from state to pass/fail
+3. Proofs verify invariants via proptest over thousands of random configurations
+4. Certification chains proofs into tamper-evident BLAKE3 attestations
+
+### Knowable Domains
+
+| Domain | Module | What Is Proven |
+|--------|--------|---------------|
+| Infrastructure | `invariants`, `simulations` | 10 security invariants x 20 architectures x 10,000+ random configs |
+| Kubernetes | `invariants::k8s`, `simulations::helm_chart` | Manifest security: no privileged, read-only root, resource limits |
+| Compliance | `compliance` | 5 frameworks (NIST/CIS/FedRAMP/PCI/SOC2), 30+ controls |
+| Transitions | `transitions` | Migration + rollback safety at every step |
+| Remediation | `remediation` | Auto-fix always produces compliant output |
+| State Machines | `state_machines` | Transition validity, reachability, determinism |
+| Schemas | `schemas` | Database migration safety, FK integrity |
+| Networks | `network` | Connectivity, redundancy, fault tolerance |
+| Security | `security_policies` | Policy consistency, least privilege, no conflicts |
+| Business | `business` | Same declaration renders to Terraform + K8s, both proven |
+| Composition | `simulations::composed` | Composed systems inherit all proofs |
+| Certification | `certification` | BLAKE3 tamper-evident attestation |
+| Self-Proof | `self_proof`, `dogfooding_proof` | The proof engine proves itself |
+
+### Combined Proof Engine (1,229 tests)
+
+| Crate | Tests | Domain |
+|-------|-------|--------|
+| pangea-sim | 647 | All knowable domains |
+| ruby-synthesizer | 177 | Structural Ruby correctness |
+| pangea-forge | 286 | IacResource -> Ruby pipeline |
+| compliance-controls | 14 | Compliance type system |
+| workspace-state-graph | 62 | Typed DAG, cross-repo topology |
+| convergence-controller | 43 | Cluster lifecycle, MCP tools |
+
+### Theoretical Foundations
+
+- **Category Theory** -- Composition preserves proofs. The `Backend` trait is a functor.
+- **Curry-Howard** -- Compiling programs ARE proofs. Passing tests are constructive witnesses.
+- **Denotational Semantics** -- `simulate()` maps typed configs to JSON values. Invariants are predicates.
+- **Lattice Theory** -- Compliance frameworks compose as lattice joins. `mkForce` breaks the lattice.
+- **Temporal Logic** -- `TransitionProof` verifies `[](checkpoint -> invariant)` for migration sequences.
+
 ## License
 
 MIT

@@ -14,7 +14,7 @@ the rendering target.
 The `Backend` trait has 7 implementations (Terraform, Pulumi, Crossplane,
 Ansible, Pangea, Steampipe). All share the same types, invariants, compliance
 controls, and BLAKE3 certification. Adding a new backend inherits ALL
-existing proofs -- 856 tests across 6 crates prove zero-cost verification.
+existing proofs -- 1,229 tests across 6 crates prove zero-cost verification.
 
 ## The Concept
 
@@ -63,7 +63,7 @@ let analysis = ArchitectureAnalysis::from_terraform_json(&tf_json);
 assert!(analysis.has_resource("aws_vpc", 1));
 ```
 
-## What's Proven (285+ tests)
+## What's Proven (647 tests, all features)
 
 | Category | Tests | What |
 |----------|-------|------|
@@ -72,15 +72,24 @@ assert!(analysis.has_resource("aws_vpc", 1));
 | Analysis proofs | 8 | Resource counting, cross-refs, determinism |
 | Engine tests | 5 | JSON execution, error handling, determinism |
 | Determinism | 5 | JSON round-trip, value reflexivity |
-| Analysis | 9 | Structure, sorting, independence |
 | Architecture invariants | 20 | All 20 simulations satisfy all 10 invariants |
 | Architecture variants | 40 | Resource production + determinism per simulation |
 | Builder fleet proofs | 36 | Exhaustive fleet config coverage |
 | Builder fleet sims | 20 | Simulation structure + analysis |
 | Composed systems | 9 | Multi-architecture composition |
-| Compiler-is-verifier | 27 | Full pipeline type-to-proof |
+| Compiler-is-verifier | 30 | Full pipeline type-to-proof |
 | Sandbox proofs | 9 | Execution backend correctness |
-| Compliance proofs | 26 | NIST/CIS/FedRAMP/PCI/SOC2 control mapping, proptest verification, non-compliance detection, certification chain |
+| Compliance proofs | 26 | NIST/CIS/FedRAMP/PCI/SOC2 control mapping, proptest, certification chain |
+| Certification proofs | 11 | BLAKE3 determinism, certificate integrity, tamper detection |
+| Transition proofs | 40+ | Migration safety, rollback safety, multi-step plans |
+| Remediation proofs | 30+ | Auto-fix correctness, proptest over all remediable invariants |
+| Helm simulation proofs | 70+ | K8s manifest invariants, Helm chart rendering |
+| Schema proofs | 30+ | Migration safety, FK integrity, no data-loss drops |
+| State machine proofs | 40+ | Transition validity, reachability, determinism |
+| Security policy proofs | 20+ | Conflict detection, least privilege, defense in depth |
+| Network proofs | 20+ | Connectivity, redundancy, CIDR validation |
+| Exhaustive + self proofs | 50+ | Platform proves itself, dogfooding, exhaustive coverage |
+| Business proofs | 40+ | Business environments render to Terraform + K8s correctly |
 
 ## Certification Module (feature: `certification`)
 
@@ -258,10 +267,39 @@ IacType (iac-forge IR)
 | `tameshi` | Downstream: attestation layers consume `ProofResult` via `certification` feature |
 | `workspace-state-graph` | Downstream: maps cross-repo type and proof connectivity |
 
+## Knowable Domains
+
+pangea-sim is the proof engine that makes every domain knowable. A domain
+is knowable when every statement about it is either proven true or proven
+false -- no runtime surprises, no manual verification.
+
+| Domain | Module | What It Proves Knowable |
+|--------|--------|------------------------|
+| **Infrastructure** | `invariants`, `simulations` (20 modules) | 10 security invariants hold across all architectures. proptest over 10,000+ random configs each. |
+| **Kubernetes** | `invariants::k8s`, `simulations::helm_chart` | K8s manifest security: no privileged containers, read-only root, resource limits, no host networking. |
+| **Compliance** | `compliance` | NIST 800-53, CIS AWS, FedRAMP Moderate, PCI DSS 4.0, SOC 2 Type II. 10 invariants -> 30+ controls. |
+| **Transitions** | `transitions` | State migrations preserve invariants at both endpoints. Rollback paths are safe. Multi-step plans hold at every step. |
+| **Remediation** | `remediation` | Auto-fix non-compliant JSON. `remediate()` always produces compliant output (proven by proptest). 9 of 10 invariants auto-remediated. |
+| **State Machines** | `state_machines` | Application logic: all transitions valid, no unreachable states, deterministic machines have no ambiguity. |
+| **Schemas** | `schemas` | Database schema migrations: no data-loss drops, FK integrity, PK references valid columns, no duplicate columns. |
+| **Networks** | `network` | Topology connectivity, redundancy, fault tolerance. No overlapping CIDRs. Connected topologies survive node removal. |
+| **Security** | `security_policies` | IAM/RBAC/NetworkPolicy/firewall: no conflicts, least privilege, explicit deny overrides allow. |
+| **Business** | `business` | Entire business environments as convergence trees. Same declaration renders to Terraform + K8s manifests, both proven compliant. |
+| **Composition** | `simulations::composed` | Multi-architecture compositions preserve all invariants from their parts. |
+| **Certification** | `certification` | BLAKE3 cryptographic attestation. Tamper-evident. Any modification breaks verification. |
+| **Self-Proof** | `self_proof`, `dogfooding_proof`, `exhaustive_proofs` | The proof engine proves itself: every module satisfies every invariant, the proof chain is complete. |
+
+**Total: 647 tests with all features** (infrastructure + K8s + compliance +
+transitions + remediation + state machines + schemas + networks + security +
+business + composition + certification + self-proof).
+
+Combined with ruby-synthesizer (177 proofs) + compliance-controls (14) +
+pangea-forge (286) + workspace-state-graph (62) + convergence-controller (43)
+= **1,229 proofs** across the full knowable platform.
+
 ## Convergence Theory
 
 pangea-sim is the **verification** stage of the convergence pipeline:
 - declared (Rust types) -> resolved (Ruby AST) -> converged (Ruby source) -> **verified** (invariant proofs)
 
-Combined with ruby-synthesizer (147 proofs) = **341 proofs total** (194 with certification).
 The typed bridge from Rust to proven infrastructure is complete.
