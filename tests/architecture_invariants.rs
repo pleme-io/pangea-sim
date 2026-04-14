@@ -42,3 +42,4 @@ prove_invariants!(rds_cluster, pangea_sim::simulations::rds_cluster);
 prove_invariants!(wireguard_vpn, pangea_sim::simulations::wireguard_vpn);
 prove_invariants!(ecr_registry, pangea_sim::simulations::ecr_registry);
 prove_invariants!(config_recorder, pangea_sim::simulations::config_recorder);
+prove_invariants!(quero_platform, pangea_sim::simulations::quero_platform);

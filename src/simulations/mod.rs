@@ -35,3 +35,4 @@ pub mod ecr_registry;
 pub mod config_recorder;
 pub mod composed;
 pub mod helm_chart;
+pub mod quero_platform;
